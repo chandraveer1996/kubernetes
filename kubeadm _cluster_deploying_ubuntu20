@@ -1,0 +1,144 @@
+
+RUN this command on 3 nodes master and both worker nodes  [ we have to create same security group for this 3 nodes ]]
+
+
+
+
+apt update
+ufw disable
+swapoff -a
+sed -i '/swap/d' /etc/fstab
+
+
+
+cat >>/etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+
+
+cd /etc/sysctl.d/
+ls
+
+
+cat > 99-kubernetes-cri.conf
+
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+
+
+
+sysctl --system
+
+
+apt install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt install -y docker-ce=5:19.03.10~3-0~ubuntu-focal containerd.io
+
+
+
+	
+
+Kubernetes Setup
+Add Apt repository
+
+
+
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+
+
+
+apt update
+apt install -y kubeadm=1.18.5-00 kubelet=1.18.5-00 kubectl=1.18.5-00
+
+
+
+RUN on Master Node
+
+kubeadm init --apiserver-advertise-address=172.42.42.100 --pod-network-cidr=192.168.0.0/16
+
+DEployig calico netwrk
+
+
+ kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+ 
+ 
+ cluster join commad
+ 
+ kubeadm token create --print-join-command
+ now run the token on other 2 worker nodes  
+ 
+ 
+ on master node
+ kubectl get nodes
+ kubectl  get nodes -w
+ 
+ 
+ deploying nginx
+ kubectl create deploy nginx --image=nginx
+ 
+ kubectl  get pod -w
+ kubectl  get pod  -o wide
+ 
+ hostname -i
+
+kubectl get deploy
+kubectl get deploy -o wide
+kubectl expose deployment nginx --name nginx --port 80
+kubectl  get svc    [ will show services running with the ip ] 
+
+now we have to curl the cluster ip 
+curl nginx cluster ip
+
+kubectl  get pod -A
+ 
+ kubectl  get pod -A -w
+
+
+kubectl  get pod -o wide [ will show nginx ip
+ 
+ curl 192.168.71.129    (nginx ip)
+
+
+
+kubectl  -n kube-system delete pod --all [ if there is an any problem in network ]
+
+
+on worker node
+
+telnet 172.31.20.64:6443   [ to check the connectivity  ]
+curl -v  172.31.20.64:6443
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
